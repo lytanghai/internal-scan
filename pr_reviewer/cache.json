@@ -1,0 +1,31 @@
+{
+  "repository_name_default": {
+    "value": [],
+    "expires_at": 1746862935.9688897
+  },
+  "repository_name_test": {
+    "value": [
+      "dailytask",
+      "dailytask(15-07-2020)"
+    ],
+    "expires_at": 1746840282.9672253
+  },
+  "repository_name_filter": {
+    "value": [],
+    "expires_at": 1746845859.8896604
+  },
+  "repository_name_wingdev": {
+    "value": [
+      "pin-validation",
+      "resilience-sample"
+    ],
+    "expires_at": 1746868695.6056921
+  },
+  "default_reviewer": {
+    "value": [
+      "seakleng.say",
+      "Sophanna Morn"
+    ],
+    "expires_at": 1746868732.5688884
+  }
+}

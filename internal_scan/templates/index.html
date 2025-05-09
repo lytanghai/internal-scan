@@ -1,0 +1,161 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Static UI</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+  <div class="container">
+
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- <div class="form-group">
+        <label for="workspace">Workspace*</label>
+        <select id="workspace">
+          <option value="" disabled selected></option>
+          <option value="default">(Create New)</option>
+        </select>
+        <input type="text" id="workspace_other" placeholder="Enter workspace" style="display: none;">
+        <button id="create_workspace_btn" style="display: none;">Create</button>
+      </div> -->
+
+      <div class="form-group">
+        <label for="workspace">Workspace*</label>
+        <select id="workspace">
+          <option value="" disabled selected>Select workspace</option>
+          <!-- Dynamically populated -->
+        </select>
+      </div>
+      
+
+      <div class="form-group">
+        <label for="report">Report In*</label>
+        <select id="report"></select>
+      </div>
+      <div class="form-group">
+        <label for="status">Status*</label>
+        <select id="status">
+          <option value="all">ALL</option>
+          <option value="open">OPEN</option>
+          <option value="declined">DECLINED</option>
+          <option value="merged">MERGED</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="target_branch">Target Branch</label>
+        <select id="target_branch">
+          <option value=""></option>
+          <option value="dev">DEV</option>
+          <option value="stage">STAGE</option>
+          <option value="uat">UAT</option>
+          <option value="pvt">PVT</option>
+          <option value="main">MAIN</option>
+          <option value="master">MASTER</option>
+          <option value="other">Other</option>
+        </select>
+        <input type="text" id="target_branch_other" placeholder="Enter target branch" style="display: none;">
+      </div>
+      <div class="form-group">
+        <label for="enforced_rule">Enforced Rule*</label>
+        <select id="enforced_rule">
+          <option value="all">ALL</option>
+          <option value="true">TRUE</option>
+          <option value="false">FALSE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="page_size">Page Size*</label>
+        <input type="number" id="page_size" value="10">
+      </div>
+      <div class="form-group">
+        <label for="requested_from">Request From</label>
+        <input type="date" id="requested_from">
+      </div>
+      <div class="form-group">
+        <label for="requested_to">Request To</label>
+        <input type="date" id="requested_to">
+      </div>
+      <div class="form-group">
+        <label for="merged_from">Merged From</label>
+        <input type="date" id="merged_from">
+      </div>
+      <div class="form-group">
+        <label for="merged_to">Merged To</label>
+        <input type="date" id="merged_to">
+      </div>
+      <div class="form-group">
+        <label for="configFile">Upload Config File (JSON)</label>
+        <input type="file" id="user_config_file" name="user_config_file" accept=".json">
+        <a href="{% static 'sample_config.json' %}" class="download-sample" download>📥 Download Sample File</a>
+      </div>
+      
+      <div class="form-group">
+        <button id="open_panel_btn" style="margin-top: 25px;border:1px solid">Workspace Panel</button>
+      </div>
+     
+    </div>
+    <!-- Hidden Panel -->
+    <div id="panel" class="hidden-panel" style=" height: auto;">
+      <div class="form-group" style="position: absolute; width: 40%;">
+        <label for="workspace_other">New Workspace Name</label>
+        <input type="text" id="workspace_other" placeholder="Enter workspace">
+        <br>
+        <button id="create_workspace_btn" class="highlight_btn">Create</button>
+      </div>
+
+      <div class="panel-content" style="margin-top: 20%; border:1px solid; overflow-y: auto; height:500px;">
+        <ul id="workspace-list" class="workspace-list"></ul>
+      </div>
+
+    </div>
+
+    <div class="actions">
+      <button id="apply_filter" type="button">Apply Filter</button>
+      <button>Export</button>
+    </div>
+
+    <div class="checklist">
+      <strong>Pull Request Rule Checklist:</strong><br>
+      1. Minimum 2 approvals<br>
+      2. Minimum 2 approvals from default reviewers
+    </div>
+    <br>
+
+    <div class="filter_result_container">
+      <label id="on_filtered_result"> <span style="color:brown">0</span> Result Found!</label>
+    </div>
+    <br>
+    <table id="pull_tbl">
+      <thead>
+        <tr>
+          <th>PR #</th>
+          <th class="width-sm">PR Name</th>
+          <th>Source Branch</th>
+          <th>Target Branch</th>
+          <th>Status</th>
+          <th>Requested By</th>
+          <th>Requested Date</th>
+          <th>Merged | Closed By</th>
+          <th>Merged | Closed Date</th>
+          <th>Enforced Rule</th>
+          <th class="width-sm">Actual Check Result</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+  <script src="{% static 'js/app.js' %}"></script>
+  <script src="{% static 'js/utilize.js' %}"></script>
+  <script src="{% static 'js/user_cookie.js' %}"></script>
+</body>
+
+</html>

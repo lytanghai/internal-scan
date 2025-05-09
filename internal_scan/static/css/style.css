@@ -1,0 +1,238 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+.warning-border {
+  border: 2px solid red;
+}
+
+.width-sm {
+  width: 15%;
+}
+
+.width-md {
+  width: 20%;
+}
+
+.width-lg {
+  width: 50%;
+}
+
+.container {
+  position: relative;
+  max-width: 99%;
+  margin: auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input,
+select,
+button {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.download-sample{
+  font-size: .9rem; 
+  text-decoration: none; 
+  color: #000;
+}
+/* Panel Styles */
+.hidden-panel {
+  display: none;
+  position: fixed;
+  top: 53%;
+  left: 32%;
+  transform: translate(-50%, -50%);
+  width: 750px;
+  height: 500px;
+  background-color: white;
+  border: 2px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  z-index: 9999;
+  overflow: auto;
+}
+
+.panel-content {
+  width: 300px;
+  text-align: center;
+}
+
+#close_panel_btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#close_panel_btn:hover {
+  background-color: #d32f2f;
+}
+
+.workspace-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.workspace-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #ddd;
+}
+.highlight_btn {
+  position: absolute;
+  right:0;
+  top:90%;
+  width: 100px;
+  background-color: rgb(24, 167, 79);
+}
+.delete-btn {
+  background-color: transparent;
+  border: none;
+  color: red;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.actions {
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  /* margin-left: auto; */
+}
+
+.checklist {
+  margin-top: 10px;
+  font-size: .9rem;
+}
+
+
+table {
+  width: 99%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+tr,
+th {
+  background-color: #eee;
+  font-size: .8rem;
+  text-align: center;
+}
+
+.filter_result_container {
+  position: relative;
+  right: 0;
+}
+
+#on_filtered_result {
+  font-size: .8rem;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+    align-items: flex-end;
+    /* Optional: align items to right when stacked */
+    margin-left: unset;
+    /* Reset so it stacks normally on small screens */
+  }
+
+  .hidden-panel {
+    width: 90%;
+    /* Take up 90% of the screen width */
+    height: 80%;
+    /* Take up 80% of the screen height */
+    top: 10%;
+    /* Adjust top margin to provide some space from the top */
+    left: 5%;
+    /* Adjust left margin */
+    transform: translate(0, 0);
+    /* Remove centering translation */
+  }
+}
+
+@media (max-width: 480px) {
+  .hidden-panel {
+    width: 95%;
+    /* Take up 95% of the screen width */
+    height: 70%;
+    /* Take up 70% of the screen height */
+    top: 15%;
+    /* Adjust top margin */
+    left: 2.5%;
+    /* Adjust left margin */
+  }
+}

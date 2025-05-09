@@ -1,0 +1,11 @@
+{
+    "username": "",
+    "app_password": "",
+    "workspace_list": [
+        ""
+    ],
+    "cache_file": "",
+    "cache_expiration": 86400,
+    "min_approval": 2,
+    "min_default_reviewer_approval": 2
+}

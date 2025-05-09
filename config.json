@@ -1,0 +1,13 @@
+{
+    "username": "tanghaily",
+    "app_password": "ATBBHeYNvjnvRQQVhNrqBmq8qbWT6CEAD854",
+    "workspace_list": [
+        "wingdev",
+        "test",
+        "tttt"
+    ],
+    "cache_file": "",
+    "cache_expiration": 86400,
+    "min_approval": 2,
+    "min_default_reviewer_approval": 2
+}
