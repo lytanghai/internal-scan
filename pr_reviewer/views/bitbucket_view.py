@@ -47,7 +47,6 @@ def get_repository(request, workspace):
         pass 
 
     # 2. Make Bitbucket API call with provided credentials
-    print(f"workspace {workspace}" )
     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}"
     username = username.strip().strip('""')
     password = password.strip().strip('""')
@@ -124,7 +123,6 @@ def on_filter(get_detail_response, workspace, status, target_branch, enforced_ru
         closed_by = pr["closed_by"]["display_name"] if isinstance(pr.get("closed_by"), dict) else ""
         id = pr.get("id", "")
 
-        print(f'testing {min_approval} {min_default_reviewer_approval}')
         enforced_rule_res, total_approvals, total_default_reviewer_approvals = check_enforce_rule(
             id,
             default_reviewers,

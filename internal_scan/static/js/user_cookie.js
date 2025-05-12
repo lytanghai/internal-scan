@@ -44,6 +44,7 @@ document.getElementById("user_config_file").addEventListener("change", function 
             }
 
             alert("Config uploaded and stored in cookies for 7 days.");
+            location.reload(true)
         } catch (err) {
             console.error("Invalid JSON:", err);
             alert("Failed to read config file. Make sure it's valid JSON.");

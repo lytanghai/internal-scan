@@ -37,8 +37,6 @@ def api_view_pull_request(request):
     min_approval = data.get('min_approval')
     min_default_reviewer_approval = data.get('min_default_reviewer_approval')
 
-    print(f"data obj {data}")
-
     workspace = data.get('workspace')
     report_in = data.get('report_in')
     status = data.get('status')

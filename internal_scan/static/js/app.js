@@ -167,7 +167,7 @@ document.getElementById("apply_filter").addEventListener("click", async function
 
       export_exc = resultList;
       console.log("Fetched export_exc:", export_exc);
-      tbody.innerHTML = ""; // Clear table
+      tbody.innerHTML = "";
 
       resultList.forEach(pr => {
         const row = document.createElement("tr");
