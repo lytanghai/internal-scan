@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
   try {
     workspaces = JSON.parse(workspaceCookie);
   } catch (e) {
-    console.error("Invalid or missing workspace_list cookie", e);
+    showError("Invalid or missing workspace_list cookie");
     return;
   }
 
@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
       })
       .catch(error => {
+        showError("Failed to fetch repositories");
         console.error("Failed to fetch repositories:", error);
       });
   }
@@ -123,7 +124,8 @@ document.getElementById("apply_filter").addEventListener("click", async function
   });
 
   if (!isValid) {
-    alert("Please fill in all required fields.");
+    showError("Please fill in all required fields.");
+
     if (firstInvalidField) firstInvalidField.focus();
     button.disabled = false;
     return;
@@ -192,6 +194,7 @@ document.getElementById("apply_filter").addEventListener("click", async function
     })
     .catch(error => {
       console.error("Fetch error:", error);
+      showError("Failed to fetch the result");
       hideLoader();
       button.disabled = false;
     });
