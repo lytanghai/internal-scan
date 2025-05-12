@@ -5,7 +5,30 @@ function setCookie(name, value, days) {
     document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
 }
 
-// Event: When user uploads JSON config file
+function modify_arr_cookie(name, value, action) {
+    let c_workspaces = getCookie(name);
+    try {
+        c_workspaces = JSON.parse(c_workspaces || '[]');
+
+    } catch (e) {
+        c_workspaces = [];
+    }
+
+    if (action === 'append') {
+        if (!c_workspaces.includes(value)) {
+            c_workspaces.push(value);
+        }
+    } else if (action === 'remove') {
+        const index = c_workspaces.indexOf(value);
+        if (index !== -1) {
+            c_workspaces.splice(index, 1);
+        }
+    }
+
+    document.cookie = `${name}=${JSON.stringify(c_workspaces)}; path=/; max-age=604800`; // 7 days
+}
+
+
 document.getElementById("user_config_file").addEventListener("change", function (event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -35,6 +58,11 @@ function getCookie(name) {
         const parts = v.split('=');
         return parts[0] === name ? decodeURIComponent(parts[1]) : r;
     }, '');
+}
+
+function getCookieWithDefault(name, defaultValue) {
+  const value = getCookie(name);
+  return value && !isNaN(value) ? parseInt(value) : defaultValue;
 }
 
 const configJson = getCookie("config_data");

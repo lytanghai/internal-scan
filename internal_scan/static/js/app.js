@@ -1,86 +1,5 @@
-// Create a new workspace
 export_exc = []
 let workspaces = []
-
-// document.getElementById("workspace").addEventListener("change", function () {
-//   const otherInput = document.getElementById("workspace_other");
-//   const createBtn = document.getElementById("create_workspace_btn");
-
-//   if (this.value === "default") {
-//     otherInput.style.display = "inline-block";
-//     createBtn.style.display = "inline-block";
-//   } else {
-//     otherInput.style.display = "none";
-//     createBtn.style.display = "none";
-//   }
-// });
-
-//change to add or delete cookie so we don't need this any more
-function createWorkspace(workspaceValue, actionValue , onSuccess, onError) {
-  if (!workspaceValue.trim()) {
-    alert("Please enter a workspace name.");
-    if (onError) onError("Workspace name is empty");
-    return;
-  }
-//change to get cookie so we don't need this any more
-  fetch('/pull_request/api/workspace/config', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ workspace: workspaceValue, action: actionValue }),
-  })
-    .then(response => response.json())
-    .then(data => {
-      console.log("Created workspace:", data);
-      if (onSuccess) onSuccess(data);
-    })
-    .catch(error => {
-      console.error("Error creating workspace:", error);
-      alert("Failed to create workspace.");
-      if (onError) onError(error);
-    });
-}
-
-document.getElementById("create_workspace_btn").addEventListener("click", function (e) {
-  // e.preventDefault();
-  const workspaceValue = document.getElementById("workspace_other").value.trim();
-
-  createWorkspace(workspaceValue, 'create' , (data) => {
-    alert("Workspace created successfully!");
-
-    const select = document.getElementById("workspace");
-    const newOption = document.createElement("option");
-    newOption.value = workspaceValue;
-    newOption.text = workspaceValue;
-    select.appendChild(newOption);
-    select.value = workspaceValue;
-
-    document.getElementById("workspace_other").style.display = "none";
-    document.getElementById("create_workspace_btn").style.display = "none";
-  });
-});
-
-if(document.getElementById("delete_workspace_btn") !== null) {
-  document.getElementById("delete_workspace_btn").addEventListener("click", function (e) {
-    e.preventDefault();
-    const workspaceValue = document.getElementById("workspace_other").value.trim();
-  
-    createWorkspace(workspaceValue, 'delete' , (data) => {
-      alert("Workspace delete successfully!");
-  
-      const select = document.getElementById("workspace");
-      const newOption = document.createElement("option");
-      newOption.value = workspaceValue;
-      newOption.text = workspaceValue;
-      select.appendChild(newOption);
-      select.value = workspaceValue;
-  
-      document.getElementById("workspace_other").style.display = "none";
-      document.getElementById("create_workspace_btn").style.display = "none";
-    });
-  });
-}
 
 document.getElementById("target_branch").addEventListener("change", function () {
   const targetBranchOther = document.getElementById("target_branch_other");
@@ -89,52 +8,59 @@ document.getElementById("target_branch").addEventListener("change", function () 
 
 //change to list cookie with value of workspace_lists intead so we don't need this any more
 document.addEventListener('DOMContentLoaded', function () {
-  fetch("/pull_request/api/config/")
-    .then(response => response.json())
-    .then(data => {
-      console.log('Full data object:', data);
-      workspaces = data.workspace_list || [];
+  const workspaceCookie = getCookie("workspace_list");
+  let workspaces = [];
 
-      const select = document.getElementById("workspace");
+  try {
+    workspaces = JSON.parse(workspaceCookie);
+  } catch (e) {
+    console.error("Invalid or missing workspace_list cookie", e);
+    return;
+  }
 
-      workspaces.forEach(workspace => {
-        const option = document.createElement("option");
-        option.value = workspace;
-        option.textContent = workspace;
-        select.appendChild(option);
-      });
+  const select = document.getElementById("workspace");
 
-      select.addEventListener('change', function () {
-        const selectedWorkspace = select.value;
-        console.log('Selected workspace:', selectedWorkspace);
+  workspaces.forEach(workspace => {
+    const option = document.createElement("option");
+    option.value = workspace;
+    option.textContent = workspace;
+    select.appendChild(option);
+  });
 
-        fetch_repo(selectedWorkspace);
-      });
-    })
-    .catch(error => {
-      console.error("Failed to load config:", error);
-    });
+  select.addEventListener('change', function () {
+    const selectedWorkspace = select.value;
+    console.log('Selected workspace:', selectedWorkspace);
 
-    //must input username and password
+    fetch_repo(selectedWorkspace);
+  });
+
   function fetch_repo(workspace) {
-    fetch(`/pull_request/api/${workspace}/`)
+
+    const username = getCookie('username');
+    const password = getCookie('password');
+    const basicAuth = btoa(`${username}:${password}`); // base64 encode
+
+    fetch(`/pull_request/api/${workspace}/`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Basic ${basicAuth}`,
+        "Content-Type": "application/json"
+      }
+    })
       .then(response => response.json())
       .then(data => {
         const repos = data.repositories || [];
         const reportSelect = document.getElementById("report");
 
-        // Clear previous options
         reportSelect.innerHTML = "";
 
-        // Add a default option
         const defaultOption = document.createElement("option");
         defaultOption.textContent = "-- Select Repository --";
-        defaultOption.value = "null"
+        defaultOption.value = "null";
         defaultOption.disabled = true;
         defaultOption.selected = true;
         reportSelect.appendChild(defaultOption);
 
-        // Add options from the fetched repo list
         repos.forEach(repo => {
           const option = document.createElement("option");
           option.value = repo;
@@ -146,9 +72,12 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error("Failed to fetch repositories:", error);
       });
   }
+
 });
 
-
+document.getElementById("export_data").addEventListener("click", function () {
+  exportToExcel(export_exc, "tanghai.ly");
+})
 document.getElementById("apply_filter").addEventListener("click", async function () {
 
   const button = document.getElementById("apply_filter");
@@ -208,14 +137,17 @@ document.getElementById("apply_filter").addEventListener("click", async function
   }
 
   showLoader();
-  console.warn("Calling to get filter (POST)");
 
-      //must input username and password
-
+  const username = getCookie('username');
+  const password = getCookie('password');
+  const basicAuth = btoa(`${username}:${password}`);
+  requestBody["min_approval"] = getCookieWithDefault("min_approval", 2);
+  requestBody["min_default_reviewer_approval"] = getCookieWithDefault("min_default_reviewer_approval", 2);
   fetch('/pull_request/api/filter', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      "Authorization": `Basic ${basicAuth}`,
     },
     body: JSON.stringify(requestBody)
   })
@@ -234,6 +166,7 @@ document.getElementById("apply_filter").addEventListener("click", async function
       }
 
       export_exc = resultList;
+      console.log("Fetched export_exc:", export_exc);
       tbody.innerHTML = ""; // Clear table
 
       resultList.forEach(pr => {
@@ -249,7 +182,7 @@ document.getElementById("apply_filter").addEventListener("click", async function
           <td>${pr.closed_by || "-"}</td>
           <td>${new Date(pr.updated_on).toLocaleString()}</td>
           <td>${pr.enforced_rule ? "Yes" : "No"}</td>
-          <td>${pr.pr_rule.replace(/\n/g, "<br>")}</td>
+          <td style="text-align:left">${pr.pr_rule.replace(/\n/g, "<br>")}</td>
         `;
         tbody.appendChild(row);
       });

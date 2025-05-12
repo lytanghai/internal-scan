@@ -1,43 +1,26 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from internal_scan.config_loader import config
-from pr_reviewer.util.cache import set_cache, get_cache
 import requests
 import json
 from pr_reviewer.util.date import format_date_time
 from datetime import datetime, timedelta
 from pathlib import Path 
 from requests.auth import HTTPBasicAuth
+from django.views.decorators.csrf import csrf_exempt
+import base64
+import binascii
 
-# -- get config json ---
-def get_config(request):
-    config_path = Path(__file__).resolve().parent.parent.parent / 'config.json' 
-    data = None
-    with open(config_path, 'r') as f:
-        data = json.load(f)
-    
-    if data:
-        keys_to_include = ['workspace_list']
-        response_data = {key: data[key] for key in keys_to_include if key in data}
-    else:
-        response_data = {}
-    return JsonResponse(response_data)
-
-# -- render html page ---
 def index(request):
     return render(request, 'index.html')
 
-def get_default_reviewer():
+def get_default_reviewer(workspace, repo_slug, username, password):
     default_reviewers = []
 
-    if get_cache('default_reviewer'):
-        print('get cache')
-        return get_cache('default_reviewer')
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_slug}/default-reviewers"
 
-    url = f"https://api.bitbucket.org/2.0/repositories/wingdev/resilience-sample/default-reviewers"
-    print("calling to get default reviewer")
-    response = requests.get(url, auth=HTTPBasicAuth(config['username'], config['app_password']))
-
+    username = username.strip().strip('"')
+    password = password.strip().strip('"')
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
     if response.status_code == 200:
         response_data = response.json()
         
@@ -45,51 +28,60 @@ def get_default_reviewer():
             display_name = value.get("display_name", "No Display Name")
             default_reviewers.append(display_name)
     
-    set_cache("default_reviewer", default_reviewers)
     return default_reviewers
 
+@csrf_exempt
 def get_repository(request, workspace):
+    # 1. Extract credentials from Authorization header
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Basic '):
+        return JsonResponse({'detail': 'Missing or invalid Authorization header'}, status=401)
+    try:
+        encoded_credentials = auth_header.split(' ')[1]
+        decoded_credentials = base64.b64decode(encoded_credentials).decode('utf-8')
+        username, password = decoded_credentials.split(':', 1)
+    except Exception:
+        return JsonResponse({'detail': 'Invalid Authorization header format'}, status=400)
+
     if workspace == 'default':
-        pass
-    cache_name = "repository_name_" + workspace
-    
-    cached_data = get_cache(cache_name)
-    if cached_data:
-        return JsonResponse({'repositories': cached_data})
-    
+        pass 
+
+    # 2. Make Bitbucket API call with provided credentials
+    print(f"workspace {workspace}" )
     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}"
-    
-    print("calling to get repositoy")
-    response = requests.get(url, auth=HTTPBasicAuth(config['username'], config['app_password']))
-    
+    username = username.strip().strip('""')
+    password = password.strip().strip('""')
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
+
     if response.status_code == 200:
         data = response.json()
         repository_names = [repo['name'].lower().replace(" ", "-") for repo in data['values']]
-        set_cache(cache_name, repository_names)
-        print("success")
-        return JsonResponse({'repositories': repository_names})  # ✅ wrap in dict
+        return JsonResponse({'repositories': repository_names})
     else:
         print(f"Failed to retrieve data. Status code: {response.status_code}")
-        return JsonResponse({'repositories': []}, status=500)  # ✅ return valid JSON even on failure
+        return JsonResponse({'repositories': []}, status=500)
 
 
-def get_pr_detail(workspace, repo_slug, status, page_size):
+def get_pr_detail(workspace, repo_slug, status, page_size, username, password):
     url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{repo_slug}/pullrequests?pagelen={page_size}&state={status}"
-    response = requests.get(url, auth=HTTPBasicAuth(config['username'], config['app_password']))
+    username = username.strip().strip('"')
+    password = password.strip().strip('"')
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
     if response.status_code == 200:
         return response.json()
     else:
         return []
 
-def check_enforce_rule(id, default_reviewers, report_slug, total_approvals, total_default_reviewer_approvals):
+def check_enforce_rule(id, default_reviewers, workspace,report_slug, total_approvals, total_default_reviewer_approvals, username, password):
     result = False
     default_approvals = 0
     total_approvals = 0
 
-    url = f"https://api.bitbucket.org/2.0/repositories/wingdev/{report_slug}/pullrequests/{id}"
+    url = f"https://api.bitbucket.org/2.0/repositories/{workspace}/{report_slug}/pullrequests/{id}"
 
-    print("calling to get pull request detail")
-    response = requests.get(url, auth=HTTPBasicAuth(config['username'], config['app_password']))
+    username = username.strip().strip('"')
+    password = password.strip().strip('"')
+    response = requests.get(url, auth=HTTPBasicAuth(username, password))
     print(f"📡 Calling to fetch pull request detail by ID: {url}")
 
     if response.status_code == 200:
@@ -118,32 +110,30 @@ def check_enforce_rule(id, default_reviewers, report_slug, total_approvals, tota
 
     return result, total_approvals, default_approvals
 
-def on_filter(get_detail_response, status, target_branch, enforced_rule, requested_from, requested_to, merged_from, merged_to, repo_slug):
-    print(f"VALUE OF TARGET BRANCH {target_branch}")
+def on_filter(get_detail_response, workspace, status, target_branch, enforced_rule, requested_from, requested_to, merged_from, merged_to, repo_slug, min_approval, min_default_reviewer_approval, username, password):
     if isinstance(get_detail_response, str):
         json_data = json.loads(get_detail_response)
     else:
         json_data = get_detail_response
 
-    default_reviewers = get_cache('default_reviewer')
-    if default_reviewers is None:
-        default_reviewers = get_default_reviewer()
-    else:
-        print("Loaded cache default reviewer from cache!")
+    print("f workspaceworkspace {workspace}")
+    default_reviewers = get_default_reviewer(workspace, repo_slug, username,password)
 
     result = []
-    min_approval = config['min_approval']
-    min_default_reviewer_approval = config['min_default_reviewer_approval']
     for pr in json_data.get("values", []):
         closed_by = pr["closed_by"]["display_name"] if isinstance(pr.get("closed_by"), dict) else ""
         id = pr.get("id", "")
 
+        print(f'testing {min_approval} {min_default_reviewer_approval}')
         enforced_rule_res, total_approvals, total_default_reviewer_approvals = check_enforce_rule(
             id,
             default_reviewers,
+            workspace,
             repo_slug,
             int(min_approval),
-            int(min_default_reviewer_approval)
+            int(min_default_reviewer_approval),
+            username,
+            password
         )
 
         if enforced_rule == 'All': 
@@ -207,7 +197,4 @@ def on_filter(get_detail_response, status, target_branch, enforced_rule, request
             "pr_rule": rule_detail
         }
         result.append(pr_info)
-    # global on_result_export
-    # on_result_export = result
-    print(f"FINAL RESULT: {result}")
     return result
